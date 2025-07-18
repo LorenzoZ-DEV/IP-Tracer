@@ -48,7 +48,15 @@ class set {
     if ($this->use_sudo && !str_starts_with(trim($command), "sudo")) {
       $command = "sudo " . $command;
     }
-    system($command);
+    echo "[EXEC] $command\n";
+    exec($command . " 2>&1", $output, $ret);
+    foreach ($output as $line) {
+      echo "  $line\n";
+    }
+    if ($ret !== 0) {
+      echo "[ERROR] Command failed with exit code $ret\n";
+    }
+    return $ret === 0;
   }
 
   public function Setup() {
@@ -67,8 +75,17 @@ class set {
     }
 
     echo "Installing binaries...\n";
-    $this->run("mv -v modules/ip-tracer {$this->bin_path}/");
-    $this->run("mv -v modules/trace {$this->bin_path}/");
+    if (!is_dir("modules")) {
+      echo "[ERROR] modules directory does not exist! Aborting.\n";
+      exit(1);
+    }
+
+    if (!$this->run("mv -v modules/ip-tracer {$this->bin_path}/")) {
+      echo "[WARN] Failed to move ip-tracer binary. Maybe it doesn't exist?\n";
+    }
+    if (!$this->run("mv -v modules/trace {$this->bin_path}/")) {
+      echo "[WARN] Failed to move trace binary. Maybe it doesn't exist?\n";
+    }
     $this->run("chmod +x {$this->bin_path}/ip-tracer {$this->bin_path}/trace");
     echo "Binaries installed.\n";
 
@@ -79,14 +96,30 @@ class set {
     }
 
     echo "Copying support files...\n";
-    $this->run("mv -v modules/* {$this->share_path}/");
+    $files = scandir("modules");
+    $moved_any = false;
+    foreach ($files as $file) {
+      if ($file === "." || $file === "..") continue;
+      if ($file === "ip-tracer" || $file === "trace") continue;
+      $src = "modules/$file";
+      $dst = $this->share_path . "/$file";
+      if ($this->run("mv -v \"$src\" \"$dst\"")) {
+        $moved_any = true;
+      }
+    }
+    if (!$moved_any) {
+      echo "[WARN] No support files moved from modules folder.\n";
+    }
     $this->run("chmod -R +x {$this->share_path}");
     echo "Support files copied.\n";
 
-    if (is_dir("../IP-Tracer")) {
+    $install_dir = realpath(__DIR__ . "/../IP-Tracer");
+    if ($install_dir && is_dir($install_dir)) {
       echo "Cleaning up installation directory...\n";
-      $this->run("rm -rf ../IP-Tracer");
+      $this->run("rm -rf " . escapeshellarg($install_dir));
       echo "Installation directory cleaned.\n";
+    } else {
+      echo "No installation directory to clean.\n";
     }
   }
 
