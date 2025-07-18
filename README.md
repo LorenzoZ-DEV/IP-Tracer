@@ -7,12 +7,16 @@
     <td style="padding-left: 20px; vertical-align: middle;">
       <samp>
         <strong>IP-Tracer</strong> – IP Address Tracker<br>
-        <small>For Termux and Linux systems</small><br><br>
+        <small>For Termux and Linux systems  - THIS IS A FORK</small><br><br>
         Track IP addresses easily using the ip-api service.<br>
         Simple commands for self or target IP tracking.<br><br>
-        <strong>Install:</strong><br>
+        <strong>Install (Termux/Linux):</strong><br>
         <code>apt update && apt install git -y</code><br>
-        <code>git clone https://github.com/rajkumardusad/IP-Tracer.git</code><br>
+        <code>git clone https://github.com/LorenzoZ-DEV/IP-Tracer.git</code><br>
+        <code>cd IP-Tracer && chmod +x install && ./install</code><br><br>
+        <strong>Install (Arch Linux):</strong><br>
+        <code>sudo pacman -S git base-devel</code><br>
+        <code>git clone https://github.com/LorenzoZ-DEV/IP-Tracer.git</code><br>
         <code>cd IP-Tracer && chmod +x install && ./install</code><br><br>
         <strong>Usage:</strong><br>
         <code>trace -m</code> (track own IP)<br>
@@ -26,7 +30,7 @@
   </tr>
   <tr>
     <td colspan="2" align="center" style="padding-top: 20px;">
-      <img src="https://i.imgur.com/3QYbXQ7.gif" alt="Nino Nakano Gif" width="300" />
+      <img src="https://media1.tenor.com/m/lH31WV8o0cYAAAAd/nino-nakano.gif" alt="Nino Nakano Gif" width="300" />
     </td>
   </tr>
 </table>
