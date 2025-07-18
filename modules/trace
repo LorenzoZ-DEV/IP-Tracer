@@ -1,7 +1,13 @@
-if [ -d /data/data/com.termux/files/usr/share ];then
-  cd /data/data/com.termux/files/usr/share/IP-Tracer
-  exec bash trace $@
-elif [ -d /usr/share ];then
-  cd /usr/share/IP-Tracer
-  exec bash trace $@
+if [ -d /data/data/com.termux/files/usr/share/IP-Tracer ]; then
+  cd /data/data/com.termux/files/usr/share/IP-Tracer || exit 1
+  [ -f trace ] && exec bash trace "$@" || { echo "[!] File 'trace' non trovato in Termux."; exit 1; }
+
+elif [ -d /usr/share/IP-Tracer ]; then
+  cd /usr/share/IP-Tracer || exit 1
+  [ -f trace ] && exec bash trace "$@" || { echo "[!] File 'trace' non trovato in /usr/share/IP-Tracer."; exit 1; }
+
+else
+  echo "[!] IP-Tracer non trovato."
+  echo "    Controlla che sia installato in /usr/share/IP-Tracer o in Termux."
+  exit 1
 fi
