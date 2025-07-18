@@ -1,77 +1,96 @@
 <?php
-include("modules/system.php");
-
 class set {
-  public function Setup() {
-    global $system;
+  public $system;
+  public $bin_path;
+  public $share_path;
+  public $use_sudo = false;
 
-    if ($system === "termux") {
-      system("rm -rf /data/data/com.termux/files/usr/share/IP-Tracer");
-      system("rm -f /data/data/com.termux/files/usr/bin/ip-tracer");
-      system("rm -f /data/data/com.termux/files/usr/bin/trace");
-    } elseif ($system === "ubuntu") {
-      system("sudo rm -f /usr/bin/ip-tracer /usr/bin/trace");
-      system("sudo rm -rf /usr/share/IP-Tracer");
-    } elseif ($system === "arch") {
-      system("rm -f /usr/bin/ip-tracer /usr/bin/trace");
-      system("rm -rf /usr/share/IP-Tracer");
-    } else {
-      system("rm -f /usr/bin/ip-tracer /usr/bin/trace");
-      system("rm -rf /usr/share/IP-Tracer");
+  public function __construct() {
+    $this->detectSystem();
+    $this->setPaths();
+  }
+
+  private function detectSystem() {
+    $this->system = "linux";
+
+    if (strpos(PHP_OS, "Linux") !== false && is_dir("/data/data/com.termux/files/usr")) {
+      $this->system = "termux";
+      $this->use_sudo = false;
+      return;
     }
 
-    if ($system === "termux") {
-      system("mv -v modules/ip-tracer /data/data/com.termux/files/usr/bin/");
-      system("mv -v modules/trace /data/data/com.termux/files/usr/bin/");
-      system("chmod +x /data/data/com.termux/files/usr/bin/ip-tracer");
-      system("chmod +x /data/data/com.termux/files/usr/bin/trace");
-    } elseif ($system === "ubuntu") {
-      system("sudo mv -v modules/ip-tracer /usr/bin/");
-      system("sudo mv -v modules/trace /usr/bin/");
-      system("sudo chmod +x /usr/bin/ip-tracer");
-      system("sudo chmod +x /usr/bin/trace");
-    } elseif ($system === "arch") {
-      system("mv -v modules/ip-tracer /usr/bin/");
-      system("mv -v modules/trace /usr/bin/");
-      system("chmod +x /usr/bin/ip-tracer");
-      system("chmod +x /usr/bin/trace");
-    } else {
-      system("mv -v modules/ip-tracer /usr/bin/");
-      system("mv -v modules/trace /usr/bin/");
-      system("chmod +x /usr/bin/ip-tracer");
-      system("chmod +x /usr/bin/trace");
-    }
-
-    if ($system === "termux") {
-      system("mkdir -p /data/data/com.termux/files/usr/share/IP-Tracer");
-      system("mv -v modules/* /data/data/com.termux/files/usr/share/IP-Tracer/");
-      system("chmod -R +x /data/data/com.termux/files/usr/share/IP-Tracer");
-    } elseif ($system === "ubuntu") {
-      system("sudo mkdir -p /usr/share/IP-Tracer");
-      system("sudo mv -v modules/* /usr/share/IP-Tracer/");
-      system("sudo chmod -R +x /usr/share/IP-Tracer");
-    } elseif ($system === "arch") {
-      system("mkdir -p /usr/share/IP-Tracer");
-      system("mv -v modules/* /usr/share/IP-Tracer/");
-      system("chmod -R +x /usr/share/IP-Tracer");
-    } else {
-      system("mkdir -p /usr/share/IP-Tracer");
-      system("mv -v modules/* /usr/share/IP-Tracer/");
-      system("chmod -R +x /usr/share/IP-Tracer");
-    }
-
-    if ($system === "termux") {
-      system("cd .. && rm -rf IP-Tracer");
-    } elseif ($system === "ubuntu") {
-      system("cd .. && sudo rm -rf IP-Tracer");
-    } elseif ($system === "arch") {
-      system("cd .. && rm -rf IP-Tracer");
-    } else {
-      system("cd .. && rm -rf IP-Tracer");
+    if (file_exists("/etc/os-release")) {
+      $os_release = file_get_contents("/etc/os-release");
+      if (stripos($os_release, "ubuntu") !== false) {
+        $this->system = "ubuntu";
+        $this->use_sudo = true;
+      } elseif (stripos($os_release, "arch") !== false) {
+        $this->system = "arch";
+        $this->use_sudo = true;
+      } else {
+        $this->system = "linux";
+        $this->use_sudo = true;
+      }
     }
   }
 
-  function logo() {
+  private function setPaths() {
+    if ($this->system === "termux") {
+      $this->bin_path = "/data/data/com.termux/files/usr/bin";
+      $this->share_path = "/data/data/com.termux/files/usr/share/IP-Tracer";
+    } else {
+      $this->bin_path = "/usr/bin";
+      $this->share_path = "/usr/share/IP-Tracer";
+    }
+  }
+
+  private function run($command) {
+    if ($this->use_sudo && !str_starts_with(trim($command), "sudo")) {
+      $command = "sudo " . $command;
+    }
+    system($command);
+  }
+
+  public function Setup() {
+    echo "Checking for old installation...\n";
+    if (
+      file_exists($this->bin_path . "/ip-tracer") ||
+      file_exists($this->bin_path . "/trace") ||
+      is_dir($this->share_path)
+    ) {
+      echo "Removing old installation...\n";
+      $this->run("rm -f {$this->bin_path}/ip-tracer {$this->bin_path}/trace");
+      $this->run("rm -rf {$this->share_path}");
+      echo "Old files removed.\n";
+    } else {
+      echo "No previous installation found.\n";
+    }
+
+    echo "Installing binaries...\n";
+    $this->run("mv -v modules/ip-tracer {$this->bin_path}/");
+    $this->run("mv -v modules/trace {$this->bin_path}/");
+    $this->run("chmod +x {$this->bin_path}/ip-tracer {$this->bin_path}/trace");
+    echo "Binaries installed.\n";
+
+    if (!is_dir($this->share_path)) {
+      echo "Creating directory {$this->share_path}...\n";
+      $this->run("mkdir -p {$this->share_path}");
+      echo "Directory created.\n";
+    }
+
+    echo "Copying support files...\n";
+    $this->run("mv -v modules/* {$this->share_path}/");
+    $this->run("chmod -R +x {$this->share_path}");
+    echo "Support files copied.\n";
+
+    if (is_dir("../IP-Tracer")) {
+      echo "Cleaning up installation directory...\n";
+      $this->run("rm -rf ../IP-Tracer");
+      echo "Installation directory cleaned.\n";
+    }
+  }
+
+  public function logo() {
     system("clear");
     echo <<<EOL
 \033[01;33m
@@ -92,7 +111,7 @@ class set {
 EOL;
 
     if (
-      file_exists("/usr/bin/ip-tracer") ||
+      file_exists("{$this->bin_path}/ip-tracer") ||
       file_exists("/data/data/com.termux/files/usr/bin/ip-tracer")
     ) {
       echo "\033[01;32m      IP-Tracer installed Successfully !!!\033[00m\n";
@@ -116,7 +135,7 @@ EOL;
   }
 }
 
-$a = new set;
+$a = new set();
 $a->Setup();
 $a->logo();
 ?>
