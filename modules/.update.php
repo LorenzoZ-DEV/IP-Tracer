@@ -4,8 +4,8 @@ include("modules/help.php");
 include("modules/trip.php");
 
 function logo() {
-  system("clear");
-  echo <<<EOL
+    system("clear");
+    echo <<<EOL
 \033[01;33m
 
 
@@ -25,15 +25,28 @@ EOL;
 }
 
 function upd() {
-  logo();
-  echo "\n\033[01;32mUpdating IP-Tracer.........\033[01;37m\n\n";
-  sleep(1);
-  system("cd ~/ && git clone https://github.com/rajkumardusad/IP-Tracer.git");
-  system("cd ~/ && sudo git clone https://github.com/rajkumardusad/IP-Tracer.git");
-  system("cd ~/IP-Tracer && sh install");
-  logo();
-  echo "\n\033[01;32m              IP-Tracer updated !!!\033[01;37m\n";
-  sleep(1);
+    logo();
+    echo "\n\033[01;32mUpdating IP-Tracer...\033[01;37m\n\n";
+    sleep(1);
+
+    $home = getenv("HOME") ?: "/root";
+    $iptracerDir = $home . "/IP-Tracer";
+
+    if (is_dir($iptracerDir)) {
+        echo "[*] Removing existing IP-Tracer directory...\n";
+        system("rm -rf " . escapeshellarg($iptracerDir));
+    }
+
+    echo "[*] Cloning IP-Tracer repository...\n";
+    system("git clone https://github.com/LorenzoZ-DEV/IP-Tracer.git " . escapeshellarg($iptracerDir));
+
+    echo "[*] Running install script...\n";
+    system("sh " . escapeshellarg($iptracerDir . "/install"));
+
+    logo();
+    echo "\n\033[01;32m              IP-Tracer updated successfully!!!\033[01;37m\n";
+    sleep(1);
 }
+
 upd();
 ?>
