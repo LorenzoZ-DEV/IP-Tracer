@@ -20,7 +20,13 @@
         <em>Note: This project is not actively maintained.</em><br><br>
         <img alt="Linux" src="https://img.shields.io/badge/-Linux-black?style=for-the-badge&logo=linux&logoColor=white">
         <img alt="Termux" src="https://img.shields.io/badge/-Termux-purple?style=for-the-badge&logo=termux&logoColor=white">
+        <img alt="Arch Linux" src="https://img.shields.io/badge/-Arch%20Linux-blue?style=for-the-badge&logo=arch-linux&logoColor=white">
       </samp>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" style="padding-top: 20px;">
+      <img src="https://i.imgur.com/3QYbXQ7.gif" alt="Nino Nakano Gif" width="300" />
     </td>
   </tr>
 </table>
